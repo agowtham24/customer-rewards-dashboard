@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-   "homepage": "https://agowtham24.github.io/customer_rewards_dashboard",
+  "homepage": "https://agowtham24.github.io/customer-rewards-dashboard",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
