@@ -25,20 +25,57 @@ function PaginatedRewardsTab({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+
   useEffect(() => {
     setCurrentPage(1);
   }, [rows, searchValue, pageSize]);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  function handleSort(accessor) {
+    if (sortColumn === accessor) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(accessor);
+      setSortDirection("asc");
+    }
+  }
+
+  const sortedRows = useMemo(() => {
+    if (!sortColumn) {
+      return rows;
+    }
+
+    return [...rows].sort((a, b) => {
+      const left = a[sortColumn];
+      const right = b[sortColumn];
+
+      if (typeof left === "number" && typeof right === "number") {
+        return sortDirection === "asc"
+          ? left - right
+          : right - left;
+      }
+
+      return sortDirection === "asc"
+        ? String(left).localeCompare(String(right))
+        : String(right).localeCompare(String(left));
+    });
+  }, [rows, sortColumn, sortDirection]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedRows.length / pageSize),
+  );
 
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
-    return rows.slice(startIndex, endIndex);
-  }, [rows, currentPage, pageSize]);
+    return sortedRows.slice(startIndex, endIndex);
+  }, [sortedRows, currentPage, pageSize]);
 
-  const showPagination = !loading && rows.length > pageSize;
+  const showPagination =
+    !loading && sortedRows.length > pageSize;
 
   return (
     <div className="space-y-4">
@@ -52,18 +89,21 @@ function PaginatedRewardsTab({
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         searchPlaceholder={searchPlaceholder}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        onSort={handleSort}
       />
 
-      {showPagination ? (
+      {showPagination && (
         <PaginationControls
           currentPage={currentPage}
           totalPages={totalPages}
-          totalRecords={rows.length}
+          totalRecords={sortedRows.length}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
           onPageSizeChange={setPageSize}
         />
-      ) : null}
+      )}
     </div>
   );
 }

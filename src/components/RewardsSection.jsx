@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -19,21 +18,8 @@ import {
 import { Skeleton } from "../components/ui/Skeleton";
 
 /**
- * Reusable rewards table section with search and loading state.
- *
- * @param {Object} props
- * @param {string} props.title
- * @param {string} props.description
- * @param {Array} props.columns
- * @param {Array} props.rows
- * @param {boolean} props.loading
- * @param {Function} props.getRowKey
- * @param {string} [props.searchValue]
- * @param {Function} props.onSearchChange
- * @param {string} [props.searchPlaceholder]
- * @returns {JSX.Element}
+ * Loading skeleton rows.
  */
-
 function LoadingTableRows({ columns, skeletonRows }) {
   return skeletonRows.map((_, rowIndex) => (
     <TableRow key={`skeleton-${rowIndex}`}>
@@ -46,6 +32,9 @@ function LoadingTableRows({ columns, skeletonRows }) {
   ));
 }
 
+/**
+ * Data rows.
+ */
 function DataTableRows({ rows, columns, getRowKey }) {
   return rows.map((row, rowIndex) => (
     <TableRow key={getRowKey(row, rowIndex)}>
@@ -58,6 +47,9 @@ function DataTableRows({ rows, columns, getRowKey }) {
   ));
 }
 
+/**
+ * Empty state row.
+ */
 function EmptyTableRow({ colSpan }) {
   return (
     <TableRow>
@@ -68,6 +60,9 @@ function EmptyTableRow({ colSpan }) {
   );
 }
 
+/**
+ * Reusable rewards table section.
+ */
 function RewardsSection({
   title,
   description,
@@ -78,39 +73,11 @@ function RewardsSection({
   searchValue = "",
   onSearchChange,
   searchPlaceholder = "Search...",
+  sortColumn,
+  sortDirection,
+  onSort,
 }) {
   const skeletonRows = Array.from({ length: 4 });
-
-  const [sortColumn, setSortColumn] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
-
-  function handleSort(accessor) {
-    if (sortColumn === accessor) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortColumn(accessor);
-      setSortDirection("asc");
-    }
-  }
-
-  const sortedRows = useMemo(() => {
-    if (loading || !sortColumn) {
-      return rows;
-    }
-
-    return [...rows].sort((a, b) => {
-      const left = a[sortColumn];
-      const right = b[sortColumn];
-
-      if (typeof left === "number" && typeof right === "number") {
-        return sortDirection === "asc" ? left - right : right - left;
-      }
-
-      return sortDirection === "asc"
-        ? String(left).localeCompare(String(right))
-        : String(right).localeCompare(String(left));
-    });
-  }, [rows, loading, sortColumn, sortDirection]);
 
   return (
     <Card>
@@ -140,7 +107,7 @@ function RewardsSection({
                     } ${column.className ?? ""}`}
                     onClick={
                       column.sortable
-                        ? () => handleSort(column.accessor)
+                        ? () => onSort(column.accessor)
                         : undefined
                     }
                   >
@@ -163,9 +130,9 @@ function RewardsSection({
                   columns={columns}
                   skeletonRows={skeletonRows}
                 />
-              ) : sortedRows.length > 0 ? (
+              ) : rows.length > 0 ? (
                 <DataTableRows
-                  rows={sortedRows}
+                  rows={rows}
                   columns={columns}
                   getRowKey={getRowKey}
                 />
@@ -199,6 +166,24 @@ RewardsSection.propTypes = {
   searchValue: PropTypes.string,
   onSearchChange: PropTypes.func.isRequired,
   searchPlaceholder: PropTypes.string,
+  sortColumn: PropTypes.string,
+  sortDirection: PropTypes.string,
+  onSort: PropTypes.func.isRequired,
+};
+
+LoadingTableRows.propTypes = {
+  columns: PropTypes.arrayOf(PropTypes.object).isRequired,
+  skeletonRows: PropTypes.array.isRequired,
+};
+
+DataTableRows.propTypes = {
+  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+  columns: PropTypes.arrayOf(PropTypes.object).isRequired,
+  getRowKey: PropTypes.func.isRequired,
+};
+
+EmptyTableRow.propTypes = {
+  colSpan: PropTypes.number.isRequired,
 };
 
 export default RewardsSection;

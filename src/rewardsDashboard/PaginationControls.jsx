@@ -72,6 +72,12 @@ function PaginationControls({
           <PaginationItem>
             <PaginationPrevious
               href="#"
+              aria-disabled={currentPage === 1}
+              className={
+                currentPage === 1
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }
               onClick={(event) => {
                 event.preventDefault();
 
@@ -140,6 +146,12 @@ function PaginationControls({
           <PaginationItem>
             <PaginationNext
               href="#"
+              aria-disabled={currentPage === totalPages}
+              className={
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }
               onClick={(event) => {
                 event.preventDefault();
 

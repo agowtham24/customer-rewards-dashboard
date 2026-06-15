@@ -116,27 +116,66 @@ function RewardsDashboard() {
     );
   }, [transactionRows, debouncedTransactionSearch]);
 
+  const currentRows = useMemo(() => {
+    switch (activeTab) {
+      case "transactions":
+        return filteredTransactions;
+
+      case "monthly":
+        return filteredMonthlyRewards;
+
+      case "total":
+        return filteredTotalRewards;
+
+      default:
+        return [];
+    }
+  }, [
+    activeTab,
+    filteredTransactions,
+    filteredMonthlyRewards,
+    filteredTotalRewards,
+  ]);
+
+  const canExport = !loading && !error && currentRows.length > 0;
+
   const handleExportCsv = () => {
     switch (activeTab) {
       case "transactions":
-        exportToCsv(filteredTransactions, "transactions.csv");
+        exportToCsv(
+          filteredTransactions.map((item) => ({
+            "Transaction ID": item.transactionId,
+            "Customer Name": item.customerName,
+            "Purchase Date": item.formattedPurchaseDate,
+            "Product Purchased": item.productPurchased,
+            Price: item.formattedPrice,
+            "Reward Points": item.rewardPoints,
+          })),
+          "transactions.csv",
+        );
         break;
 
       case "monthly":
         exportToCsv(
           filteredMonthlyRewards.map((item) => ({
-            customerId: item.customerId,
-            name: item.name,
-            month: item.month,
-            year: item.year,
-            rewardPoints: item.rewardPoints,
+            "Customer ID": item.customerId,
+            Name: item.name,
+            Month: item.month,
+            Year: item.year,
+            "Reward Points": item.rewardPoints,
           })),
           "monthly-rewards.csv",
         );
         break;
 
       case "total":
-        exportToCsv(filteredTotalRewards, "total-rewards.csv");
+        exportToCsv(
+          filteredTotalRewards.map((item) => ({
+            "Customer Name": item.name,
+            "Reward Points": item.rewardPoints,
+          })),
+          "total-rewards.csv",
+        );
         break;
 
       default:
@@ -175,7 +214,7 @@ function RewardsDashboard() {
               </SelectContent>
             </Select>
 
-            <Button onClick={handleExportCsv} disabled={loading}>
+            <Button onClick={handleExportCsv} disabled={!canExport}>
               Export CSV
             </Button>
 
